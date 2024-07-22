@@ -1,35 +1,88 @@
-# Pixiu Dashboard
+****************前端****************
 
-This template should help get you started developing with Vue 3 in Vite.
+### 目的
 
-## Recommended IDE Setup
+搭建一套基于云上环境的应用(ip访问版)
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+#### 准备云资源
 
-## Customize configuration
+- RDS （mysql）
+- ECS  (虚拟服务器)
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+#### 环境依赖
 
-## Project Setup
-```sh
-npm install
+- 服务器上需要部署好 git  docker 以及 docker-compose
+
+#### 开始部署
+
+- 数据库初始化
+
+```bash
+## 下载后端项目
+cd ~
+git clone https://github.com/caoyingjunz/pixiu.git
+## 根据项目下的 pixiu/docs/sql.md 来进行数据库的初始化
+cd pixiu/docs/
+cat sql.md
+## 对数据库执行初始化操作
 ```
 
-### 启动本地开发环境
-```sh
-npm run dev
+- 部署后端服务
+
+```bash
+cd ~/pixiu/
+## 构建docker镜像
+cat Dockerfile ## 查看Dockerfile文件，并理解
+## 执行构建命令
+docker build -t  xxxx:latest .
+## 编辑配置文件
+vim config.yaml  ## 修改数据库配置
+## 编写docker-compose.yaml文件
+vim docker-compose.yaml
+version: "3.9"
+services:
+  pixiu-backend:
+    image: xxxx:latest
+    container_name: pixiu-backend
+    restart: always
+    network_mode: host
+    volumes:
+    - ./config.yaml:/etc/pixiu/config.yaml
+## 启动后端服务
+docker-compose up -d 
+## 查看日志，观察服务是否正常启动
+docker logs -f containername 
 ```
 
-### 登陆方式
-```sh
-pixiu/Pixiu123456!
+- 部署前端服务
+
+```bash
+## 下载前端项目
+cd ~
+git clone https://github.com/pixiu-io/dashboard.git
+cd dashboard/
+## 构建docker镜像
+ls docker ##里面包含nginx.conf Dockerfile等文件,可以理解理解
+## 执行镜像构建命令
+docker build  -t xxx:xxx  -f docker/Dockerfile .
+## 编写docker-compose.yaml文件
+vim docker-compose.yaml
+version: "3.9"
+services:
+  pixiu-frontend:
+    image: xxx:xxx
+    container_name: pixiu-frontend
+    restart: always
+    network_mode: host
+## 启动前端服务
+docker-compose up -d 
+## 查看日志，观察服务是否正常启动
+docker logs -f containername 
 ```
 
-## 学习分享
-- [go-learning](https://github.com/caoyingjunz/go-learning)
+- 浏览器查看页面
 
-## 沟通交流
-- 搜索微信号 `yingjuncz`, 备注（pixiu）, 验证通过会加入群聊
-- [bilibili](https://space.bilibili.com/3493104248162809?spm_id_from=333.1007.0.0) 技术分享
+```bash
+http://$ecs_ip
+```
 
-Copyright 2019 caoyingjun (cao.yingjunz@gmail.com) Apache License 2.0
